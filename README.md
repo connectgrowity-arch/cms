@@ -192,12 +192,39 @@ Expected output: `ALL RLS TESTS PASSED`.
 
 ---
 
-## 7. Deployment (Vercel)
+## 7. Deployment (Netlify via GitHub)
 
-1. Push this folder to a private GitHub repo.
-2. Vercel → New Project → import the repo (framework auto-detected).
-3. Add the environment variables from section 3 for Production (and Preview if used). Mark `SUPABASE_SECRET_KEY` as sensitive.
-4. Deploy, then set Supabase **Site URL** and **Redirect URLs** to the Vercel or custom domain (section 2.3).
-5. Smoke test: sign in, open Users, add a test user, sign in as them in a private window, check what they can see, then deactivate them.
+Live URL: `https://cms.growity.in`
 
-Any Node 20+ host works the same way (`npm run build && npm start`).
+1. Push this folder to a private GitHub repo (`git remote add origin <url>` then `git push -u origin main`).
+2. Netlify → Add new site → Import from Git → pick the repo. Next.js 15 is auto-detected (build command `npm run build`).
+3. Site configuration → Environment variables:
+
+| Variable | Value |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://uvhelknuzxyjdiyqxrru.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | the `sb_publishable_...` key |
+| `NEXT_PUBLIC_SITE_URL` | `https://cms.growity.in` |
+| `SUPABASE_SECRET_KEY` | the `sb_secret_...` key (mark as secret) |
+| `SECRETS_SCAN_OMIT_KEYS` | `NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,NEXT_PUBLIC_SITE_URL` |
+
+   `NEXT_PUBLIC_*` values are baked in at build time: redeploy after changing them.
+4. Domain management → add `cms.growity.in`. At your DNS provider add `CNAME  cms  ->  <site-name>.netlify.app`. HTTPS is issued automatically.
+5. Supabase → Authentication → URL Configuration: Site URL = `https://cms.growity.in`; Redirect URLs = `https://cms.growity.in/**` and `http://localhost:3000/**`. Update the Reset Password email template (section 2.3).
+
+---
+
+## 8. Setup status (Supabase project `uvhelknuzxyjdiyqxrru`)
+
+Done:
+- [x] All 5 migrations applied (4 tables, 12 RLS policies, triggers, admin RPCs)
+- [x] Reference data seeded (AGY, SCL, ACD + 4 company settings)
+- [x] `rls_auto_enable()` locked from API access
+- [x] First admin created: `connect.growity@gmail.com` (role `admin`). Change the password after first login.
+- [x] `.env.local` created with URL and publishable key
+
+Still to do in the Supabase dashboard:
+- [ ] Paste `sb_secret_...` into `SUPABASE_SECRET_KEY` (local `.env.local` and Netlify)
+- [ ] Authentication → turn OFF "Allow new users to sign up"
+- [ ] Authentication → URL Configuration (step 5 above) and reset-password email template
+- [ ] Custom SMTP for production email
